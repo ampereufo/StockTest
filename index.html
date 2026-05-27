@@ -581,7 +581,7 @@ async function loadStocks(){
   }catch(e){
     console.warn('加载 stocks.json 失败，使用默认数据', e);
     currentStocks = [
-      { code:'603501', name:'韦尔股份',  price:148.20, chg:+2.34, rating:'strong', ratingLabel:'强烈关注', target:180, upside:21.4, conf:88, catalyst:'Q2财报毛利率兑现' },
+      { code:'603501', name:'豪威集团',  price:148.20, chg:+2.34, rating:'strong', ratingLabel:'强烈关注', target:180, upside:21.4, conf:88, catalyst:'Q2财报毛利率兑现' },
       { code:'002241', name:'歌尔股份',  price:22.15,  chg:-0.87, rating:'hold',   ratingLabel:'中性持有', target:32,  upside:44.5, conf:55, catalyst:'苹果新品发布' },
       { code:'300308', name:'中际旭创',  price:102.50, chg:+4.12, rating:'buy',    ratingLabel:'积极配置', target:1400, upside:26.0, conf:82, catalyst:'800G/1.6T量产进度' },
       { code:'688012', name:'中微公司',  price:215.30, chg:+1.85, rating:'strong', ratingLabel:'强烈关注', target:580, upside:27.5, conf:85, catalyst:'刻蚀机新客户导入' },
@@ -790,7 +790,7 @@ const frameworkData = [
     content:'14nm以上制程国产化率已超70%；28nm芯片设备国产化率约40%，北方华创、中微公司进入主流产线验证；AI训练卡（华为昇腾910C）渗透率提升至约15%',
     source:'工信部数据、财新深度、中芯国际业绩会' },
   { layer:'④ A股标的筛选', color:'#EDE7F6', border:'#4527A0', icon:'📌',
-    content:'核心关注：中际旭创（光模块）、中微公司（刻蚀机）、北方华创（半导体设备）、汇川技术（机器人核心零部件）、韦尔股份（图像传感器）',
+    content:'核心关注：中际旭创（光模块）、中微公司（刻蚀机）、北方华创（半导体设备）、汇川技术（机器人核心零部件）、豪威集团（图像传感器）',
     source:'本平台综合评级模型' },
 ];
 const fw = document.getElementById('frameworkContent');
@@ -818,7 +818,7 @@ function renderMemo(){
       <span class="stock-chip" onclick="openStockDetail('300496')">中际旭创</span>
       <span class="stock-chip" onclick="openStockDetail('688012')">中微公司</span>
       <span class="stock-chip" onclick="openStockDetail('300124')">汇川技术</span>
-      <span class="stock-chip" onclick="openStockDetail('603501')">韦尔股份</span>
+      <span class="stock-chip" onclick="openStockDetail('603501')">豪威集团</span>
     </div>
     <div class="memo-label" style="margin-top:8px;">策略建议</div>
     <div class="memo-text">光模块赛道<strong>积极配置</strong>，半导体设备<strong>强烈关注</strong>；仓位控制科技整体不超过35%，分批左侧建仓</div>

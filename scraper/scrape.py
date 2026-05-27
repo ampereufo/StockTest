@@ -21,7 +21,7 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__
 
 # ── 股票标的池（代码 → 分析元数据）─────────────────
 STOCK_POOL = {
-    "sh603501": {"code": "603501", "name": "韦尔股份",  "rating": "strong", "ratingLabel": "强烈关注", "target": 180, "conf": 88, "catalyst": "Q2财报毛利率兑现"},
+    "sh603501": {"code": "603501", "name": "豪威集团",  "rating": "strong", "ratingLabel": "强烈关注", "target": 180, "conf": 88, "catalyst": "Q2财报毛利率兑现"},
     "sz002241": {"code": "002241", "name": "歌尔股份",  "rating": "hold",   "ratingLabel": "中性持有", "target": 32,  "conf": 55, "catalyst": "苹果新品发布"},
     "sz300308": {"code": "300308", "name": "中际旭创",  "rating": "buy",    "ratingLabel": "积极配置", "target": 1400,"conf": 82, "catalyst": "800G/1.6T量产进度"},
     "sh688012": {"code": "688012", "name": "中微公司",  "rating": "strong", "ratingLabel": "强烈关注", "target": 580, "conf": 85, "catalyst": "刻蚀机新客户导入"},
