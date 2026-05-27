@@ -198,12 +198,6 @@
   body.is-mobile .stock-table th, body.is-mobile .stock-table td { padding: 6px 7px; }
   body.is-mobile .mobile-hide-col { display: none; }
 
-  /* MOBILE: 顶部快捷导航 */
-  .mobile-nav { display: none; position: sticky; top: 48px; z-index: 150; background: var(--white); border-bottom: 1px solid var(--border); padding: 0 12px; overflow-x: auto; white-space: nowrap; }
-  .mobile-nav::-webkit-scrollbar { display: none; }
-  .mobile-nav-btn { display: inline-block; padding: 9px 12px; font-size: 12px; color: var(--text2); cursor: pointer; border-bottom: 2px solid transparent; }
-  .mobile-nav-btn.active { color: var(--sky); border-bottom: 2px solid var(--sky); }
-  body.is-mobile .mobile-nav { display: block; }
   body.is-mobile { --topbar-h: 48px; }
 
   /* MOBILE: 底部分析卡片堆叠 */
@@ -231,16 +225,7 @@
   </div>
 </header>
 
-<!-- 手机端顶部快捷导航 -->
-<nav class="mobile-nav" id="mobileNav">
-  <span class="mobile-nav-btn active" onclick="mobileScrollTo('sec-index',this)">行情</span>
-  <span class="mobile-nav-btn" onclick="mobileScrollTo('sec-news',this)">资讯</span>
-  <span class="mobile-nav-btn" onclick="mobileScrollTo('sec-chart',this)">走势</span>
-  <span class="mobile-nav-btn" onclick="mobileScrollTo('sec-sectors',this)">板块</span>
-  <span class="mobile-nav-btn" onclick="mobileScrollTo('sec-stocks',this)">标的</span>
-  <span class="mobile-nav-btn" onclick="mobileScrollTo('sec-memo',this)">备忘录</span>
-  <span class="mobile-nav-btn" onclick="mobileScrollTo('sec-risk',this)">风险</span>
-</nav>
+<!-- 手机端顶部快捷导航已移除 -->
 
 <!-- MAIN -->
 <div class="main-wrap" id="mainWrap">
@@ -897,26 +882,6 @@ function showMemo(){
   mc.style.transition='box-shadow .2s';
   mc.style.boxShadow='0 0 0 2px #1565C0';
   setTimeout(()=>mc.style.boxShadow='',1600);
-}
-
-// ============================================================
-// MOBILE NAVIGATION
-// ============================================================
-function mobileScrollTo(id, btn){
-  document.querySelectorAll('.mobile-nav-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  // 板块/标的存在于 tab-pane 内，需先激活对应 Tab 让元素可见
-  const tabMap = { 'sec-chart':'tab-chart', 'sec-sectors':'tab-sector', 'sec-stocks':'tab-stocks' };
-  if(tabMap[id]){
-    document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
-    document.getElementById(tabMap[id]).classList.add('active');
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-    const btns = document.querySelectorAll('.tab-btn');
-    const tabIdx = ['tab-chart','tab-sector','tab-stocks','tab-framework'].indexOf(tabMap[id]);
-    if(tabIdx>=0 && btns[tabIdx]) btns[tabIdx].classList.add('active');
-  }
-  const el = document.getElementById(id);
-  if(el) setTimeout(()=>el.scrollIntoView({ behavior:'smooth', block:'start' }), 60);
 }
 
 // ============================================================
