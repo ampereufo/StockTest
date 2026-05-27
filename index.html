@@ -37,9 +37,7 @@
   .time-badge { color: rgba(255,255,255,.7); font-size: 11px; }
   .src-label { color: rgba(255,255,255,.6); font-size: 11px; }
 
-  /* ===== AUTO-REFRESH PROGRESS BAR ===== */
-  .refresh-bar-wrap { position: fixed; top: var(--topbar-h); left: 0; right: 0; height: 3px; z-index: 199; background: rgba(255,255,255,.1); }
-  .refresh-bar { height: 3px; background: var(--sky-mid); transition: width 1s linear; }
+  /* ===== AUTO-REFRESH TOAST ===== */
   .refresh-toast { position: fixed; top: calc(var(--topbar-h) + 8px); right: 16px; z-index: 300; background: var(--sky-dark); color: #fff; font-size: 11px; border-radius: 6px; padding: 6px 14px; opacity: 0; transition: opacity .3s; pointer-events: none; }
   .refresh-toast.show { opacity: 1; }
 
@@ -207,8 +205,7 @@
 </head>
 <body>
 
-<!-- 自动刷新进度条 -->
-<div class="refresh-bar-wrap"><div class="refresh-bar" id="refreshBar"></div></div>
+<!-- 自动刷新进度条已移除 -->
 <div class="refresh-toast" id="refreshToast">正在刷新数据...</div>
 
 <!-- TOPBAR -->
@@ -418,7 +415,6 @@ let refreshRemain = REFRESH_INTERVAL;
 
 function updateRefreshUI(){
   const pct = ((REFRESH_INTERVAL - refreshRemain) / REFRESH_INTERVAL) * 100;
-  document.getElementById('refreshBar').style.width = pct + '%';
   document.getElementById('refreshBarMerged').style.width = pct + '%';
   const m = Math.floor(refreshRemain / 60);
   const s = refreshRemain % 60;
