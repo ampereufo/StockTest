@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-27 21:25:59",
+  "updated": "2026-05-27 22:10:11",
   "stocks": [
     {
       "code": "603501",
@@ -9,7 +9,7 @@
       "rating": "strong",
       "ratingLabel": "强烈关注",
       "target": 180,
-      "upside": 21.4,
+      "upside": 71.5,
       "conf": 88,
       "catalyst": "Q2财报毛利率兑现"
     },
@@ -20,8 +20,8 @@
       "chg": 3.55,
       "rating": "hold",
       "ratingLabel": "中性持有",
-      "target": 24,
-      "upside": 8.4,
+      "target": 32,
+      "upside": 13.2,
       "conf": 55,
       "catalyst": "苹果新品发布"
     },
@@ -32,10 +32,10 @@
       "chg": 0.76,
       "rating": "buy",
       "ratingLabel": "积极配置",
-      "target": 125,
-      "upside": 21.9,
+      "target": 1400,
+      "upside": 26.0,
       "conf": 82,
-      "catalyst": "800G量产进度"
+      "catalyst": "800G/1.6T量产进度"
     },
     {
       "code": "688012",
@@ -44,8 +44,8 @@
       "chg": -1.83,
       "rating": "strong",
       "ratingLabel": "强烈关注",
-      "target": 270,
-      "upside": 25.4,
+      "target": 580,
+      "upside": 27.5,
       "conf": 85,
       "catalyst": "刻蚀机新客户导入"
     },
@@ -56,8 +56,8 @@
       "chg": -3.44,
       "rating": "buy",
       "ratingLabel": "积极配置",
-      "target": 82,
-      "upside": 19.9,
+      "target": 95,
+      "upside": 21.6,
       "conf": 76,
       "catalyst": "机器人订单公告"
     },
@@ -68,8 +68,8 @@
       "chg": -2.08,
       "rating": "watch",
       "ratingLabel": "审慎观望",
-      "target": 9,
-      "upside": 15.1,
+      "target": 8.5,
+      "upside": 39.1,
       "conf": 48,
       "catalyst": "Q3组件出货数据"
     },
@@ -80,8 +80,8 @@
       "chg": -0.15,
       "rating": "buy",
       "ratingLabel": "积极配置",
-      "target": 68,
-      "upside": 22.1,
+      "target": 82,
+      "upside": 23.3,
       "conf": 78,
       "catalyst": "新一代指纹芯片量产"
     },
@@ -92,8 +92,8 @@
       "chg": -1.19,
       "rating": "hold",
       "ratingLabel": "中性持有",
-      "target": 38,
-      "upside": 8.0,
+      "target": 85,
+      "upside": 18.7,
       "conf": 60,
       "catalyst": "苹果链复苏节奏"
     }
