@@ -450,16 +450,10 @@ function doRefresh(){
   label.innerHTML = '<span class="scan-pulse">●</span> 刷新数据中';
   setTimeout(()=>{ label.innerHTML = '<span class="scan-pulse">●</span> 扫描最新资讯'; }, 2000);
 
-  // 刷新指数数据（模拟波动）
-  refreshIndices();
-  // 刷新新闻热度
-  refreshNewsHeat();
-  // 刷新成交量
-  refreshVol();
-  // 重新生成走势数据
-  refreshMainChart();
-  // 更新新闻条目计数
-  document.getElementById('newsCount').textContent = Math.floor(Math.random()*80+120);
+  // 重新加载实时行情数据（指数 + 标的）
+  Promise.all([loadIndices(), loadStocks()]).then(()=>{
+    document.getElementById('newsCount').textContent = Math.floor(Math.random()*80+120);
+  });
 
   refreshRemain = REFRESH_INTERVAL;
 }
@@ -491,15 +485,26 @@ const FMT = d => `${d.getMonth()+1}月${d.getDate()}日`;
 document.getElementById('todayDate').textContent = '今日 ' + FMT(TODAY);
 document.getElementById('newsCount').textContent = Math.floor(Math.random()*80+120);
 
-// ——— 指数 ———
-const indices = [
-  { name:'上证指数', val:3487.23, chg:+0.82, dir:'up' },
-  { name:'深证成指', val:10812.56, chg:+1.14, dir:'up' },
-  { name:'科创50', val:1124.80, chg:+2.31, dir:'up' },
-  { name:'创业板指', val:2198.34, chg:-0.43, dir:'down' },
-  { name:'半导体指数', val:6723.11, chg:+3.15, dir:'up' },
-];
-let currentIndices = indices.map(i=>({...i}));
+// ——— 指数（从 data/indices.json 加载）———
+let currentIndices = [];
+async function loadIndices(){
+  try{
+    const resp = await fetch('data/indices.json?t='+Date.now());
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    const json = await resp.json();
+    currentIndices = json.indices;
+  }catch(e){
+    console.warn('加载 indices.json 失败，使用默认数据', e);
+    currentIndices = [
+      { name:'上证指数', val:3487.23, chg:+0.82, dir:'up' },
+      { name:'深证成指', val:10812.56, chg:+1.14, dir:'up' },
+      { name:'科创50', val:1124.80, chg:+2.31, dir:'up' },
+      { name:'创业板指', val:2198.34, chg:-0.43, dir:'down' },
+      { name:'半导体指数', val:6723.11, chg:+3.15, dir:'up' },
+    ];
+  }
+  renderIndexBar();
+}
 
 function renderIndexBar(){
   const el = document.getElementById('sec-index');
@@ -514,17 +519,6 @@ function renderIndexBar(){
       <div class="idx-chg ${cls}">${sign}${idx.chg.toFixed(2)}%</div>
     </div>`;
   });
-}
-renderIndexBar();
-
-function refreshIndices(){
-  currentIndices = currentIndices.map(idx=>{
-    const delta = (Math.random()-0.48)*0.06;
-    const newVal = Math.round((idx.val * (1 + delta/100)) * 100) / 100;
-    const newChg = Math.round((idx.chg + delta*0.3) * 100) / 100;
-    return { ...idx, val: newVal, chg: newChg, dir: newChg>=0?'up':'down' };
-  });
-  renderIndexBar();
 }
 
 // ——— 新闻 ———
@@ -589,18 +583,29 @@ function renderSectors(){
 }
 renderSectors();
 
-// ——— 核心标的 ———
-const stocks = [
-  { code:'603501', name:'韦尔股份',  price:148.20, chg:+2.34, rating:'strong', ratingLabel:'强烈关注', target:180, upside:21.4, conf:88, catalyst:'Q2财报毛利率兑现' },
-  { code:'002241', name:'歌尔股份',  price:22.15,  chg:-0.87, rating:'hold',   ratingLabel:'中性持有', target:24,  upside:8.4,  conf:55, catalyst:'苹果新品发布' },
-  { code:'300496', name:'中际旭创',  price:102.50, chg:+4.12, rating:'buy',    ratingLabel:'积极配置', target:125, upside:21.9, conf:82, catalyst:'800G量产进度' },
-  { code:'688012', name:'中微公司',  price:215.30, chg:+1.85, rating:'strong', ratingLabel:'强烈关注', target:270, upside:25.4, conf:85, catalyst:'刻蚀机新客户导入' },
-  { code:'300124', name:'汇川技术',  price:68.40,  chg:+0.62, rating:'buy',    ratingLabel:'积极配置', target:82,  upside:19.9, conf:76, catalyst:'机器人订单公告' },
-  { code:'688223', name:'晶科能源',  price:7.82,   chg:-1.13, rating:'watch',  ratingLabel:'审慎观望', target:9,   upside:15.1, conf:48, catalyst:'Q3组件出货数据' },
-  { code:'603160', name:'汇顶科技',  price:55.70,  chg:+3.45, rating:'buy',    ratingLabel:'积极配置', target:68,  upside:22.1, conf:78, catalyst:'新一代指纹芯片量产' },
-  { code:'002475', name:'立讯精密',  price:35.20,  chg:+0.85, rating:'hold',   ratingLabel:'中性持有', target:38,  upside:8.0,  conf:60, catalyst:'苹果链复苏节奏' },
-];
-let currentStocks = stocks.map(s=>({...s}));
+// ——— 核心标的（从 data/stocks.json 加载）———
+let currentStocks = [];
+async function loadStocks(){
+  try{
+    const resp = await fetch('data/stocks.json?t='+Date.now());
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    const json = await resp.json();
+    currentStocks = json.stocks;
+  }catch(e){
+    console.warn('加载 stocks.json 失败，使用默认数据', e);
+    currentStocks = [
+      { code:'603501', name:'韦尔股份',  price:148.20, chg:+2.34, rating:'strong', ratingLabel:'强烈关注', target:180, upside:21.4, conf:88, catalyst:'Q2财报毛利率兑现' },
+      { code:'002241', name:'歌尔股份',  price:22.15,  chg:-0.87, rating:'hold',   ratingLabel:'中性持有', target:24,  upside:8.4,  conf:55, catalyst:'苹果新品发布' },
+      { code:'300308', name:'中际旭创',  price:102.50, chg:+4.12, rating:'buy',    ratingLabel:'积极配置', target:125, upside:21.9, conf:82, catalyst:'800G量产进度' },
+      { code:'688012', name:'中微公司',  price:215.30, chg:+1.85, rating:'strong', ratingLabel:'强烈关注', target:270, upside:25.4, conf:85, catalyst:'刻蚀机新客户导入' },
+      { code:'300124', name:'汇川技术',  price:68.40,  chg:+0.62, rating:'buy',    ratingLabel:'积极配置', target:82,  upside:19.9, conf:76, catalyst:'机器人订单公告' },
+      { code:'688223', name:'晶科能源',  price:7.82,   chg:-1.13, rating:'watch',  ratingLabel:'审慎观望', target:9,   upside:15.1, conf:48, catalyst:'Q3组件出货数据' },
+      { code:'603160', name:'汇顶科技',  price:55.70,  chg:+3.45, rating:'buy',    ratingLabel:'积极配置', target:68,  upside:22.1, conf:78, catalyst:'新一代指纹芯片量产' },
+      { code:'002475', name:'立讯精密',  price:35.20,  chg:+0.85, rating:'hold',   ratingLabel:'中性持有', target:38,  upside:8.0,  conf:60, catalyst:'苹果链复苏节奏' },
+    ];
+  }
+  renderStockTable();
+}
 
 function renderStockTable(filter='all'){
   const body = document.getElementById('stockTableBody');
@@ -627,7 +632,6 @@ function renderStockTable(filter='all'){
     </tr>`;
   });
 }
-renderStockTable();
 
 function filterStocks(el, f){
   document.querySelectorAll('#tab-stocks .filter-chip').forEach(c=>c.classList.remove('active'));
@@ -904,6 +908,13 @@ function mobileScrollTo(id, btn){
   const el = document.getElementById(id);
   if(el) el.scrollIntoView({ behavior:'smooth', block:'start' });
 }
+
+// ============================================================
+// 页面初始化
+// ============================================================
+(async function init(){
+  await Promise.all([loadIndices(), loadStocks()]);
+})();
 </script>
 </body>
 </html>
