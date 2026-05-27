@@ -582,13 +582,13 @@ async function loadStocks(){
     console.warn('加载 stocks.json 失败，使用默认数据', e);
     currentStocks = [
       { code:'603501', name:'韦尔股份',  price:148.20, chg:+2.34, rating:'strong', ratingLabel:'强烈关注', target:180, upside:21.4, conf:88, catalyst:'Q2财报毛利率兑现' },
-      { code:'002241', name:'歌尔股份',  price:22.15,  chg:-0.87, rating:'hold',   ratingLabel:'中性持有', target:24,  upside:8.4,  conf:55, catalyst:'苹果新品发布' },
-      { code:'300308', name:'中际旭创',  price:102.50, chg:+4.12, rating:'buy',    ratingLabel:'积极配置', target:125, upside:21.9, conf:82, catalyst:'800G量产进度' },
-      { code:'688012', name:'中微公司',  price:215.30, chg:+1.85, rating:'strong', ratingLabel:'强烈关注', target:270, upside:25.4, conf:85, catalyst:'刻蚀机新客户导入' },
-      { code:'300124', name:'汇川技术',  price:68.40,  chg:+0.62, rating:'buy',    ratingLabel:'积极配置', target:82,  upside:19.9, conf:76, catalyst:'机器人订单公告' },
-      { code:'688223', name:'晶科能源',  price:7.82,   chg:-1.13, rating:'watch',  ratingLabel:'审慎观望', target:9,   upside:15.1, conf:48, catalyst:'Q3组件出货数据' },
-      { code:'603160', name:'汇顶科技',  price:55.70,  chg:+3.45, rating:'buy',    ratingLabel:'积极配置', target:68,  upside:22.1, conf:78, catalyst:'新一代指纹芯片量产' },
-      { code:'002475', name:'立讯精密',  price:35.20,  chg:+0.85, rating:'hold',   ratingLabel:'中性持有', target:38,  upside:8.0,  conf:60, catalyst:'苹果链复苏节奏' },
+      { code:'002241', name:'歌尔股份',  price:22.15,  chg:-0.87, rating:'hold',   ratingLabel:'中性持有', target:32,  upside:44.5, conf:55, catalyst:'苹果新品发布' },
+      { code:'300308', name:'中际旭创',  price:102.50, chg:+4.12, rating:'buy',    ratingLabel:'积极配置', target:1400, upside:26.0, conf:82, catalyst:'800G/1.6T量产进度' },
+      { code:'688012', name:'中微公司',  price:215.30, chg:+1.85, rating:'strong', ratingLabel:'强烈关注', target:580, upside:27.5, conf:85, catalyst:'刻蚀机新客户导入' },
+      { code:'300124', name:'汇川技术',  price:68.40,  chg:+0.62, rating:'buy',    ratingLabel:'积极配置', target:95,  upside:22.0, conf:76, catalyst:'机器人订单公告' },
+      { code:'688223', name:'晶科能源',  price:7.82,   chg:-1.13, rating:'watch',  ratingLabel:'审慎观望', target:8.5, upside:39.0, conf:48, catalyst:'Q3组件出货数据' },
+      { code:'603160', name:'汇顶科技',  price:55.70,  chg:+3.45, rating:'buy',    ratingLabel:'积极配置', target:82,  upside:23.0, conf:78, catalyst:'新一代指纹芯片量产' },
+      { code:'002475', name:'立讯精密',  price:35.20,  chg:+0.85, rating:'hold',   ratingLabel:'中性持有', target:85,  upside:19.0, conf:60, catalyst:'苹果链复苏节奏' },
     ];
   }
   renderStockTable();
