@@ -1,0 +1,5 @@
+.workbuddy/
+.codebuddy/
+gh.zip
+node_modules/
+.DS_Store
