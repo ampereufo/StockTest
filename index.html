@@ -153,10 +153,15 @@
   .filter-chip { padding: 4px 10px; border-radius: 14px; border: 1px solid var(--border); background: var(--white); font-size: 11px; cursor: pointer; color: var(--text2); transition: all .12s; }
   .filter-chip.active, .filter-chip:hover { background: var(--sky); color: #fff; border-color: var(--sky); }
 
-  /* ===== SCAN ANIMATION ===== */
-  .scan-bar { height: 2px; background: linear-gradient(90deg, transparent, var(--sky-mid), transparent); width: 60%; border-radius: 1px; animation: scan 2s infinite; }
-  @keyframes scan { 0%{width:10%;margin-left:0} 50%{width:60%;margin-left:20%} 100%{width:10%;margin-left:80%} }
-  .scanning-label { display: flex; flex-direction: column; gap: 4px; padding: 6px 0; }
+  /* ===== SCAN + COUNTDOWN MERGED ===== */
+  .scan-merged { background: var(--sky-light); border-radius: 8px; padding: 10px 14px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .scan-merged-top { display: flex; align-items: center; justify-content: space-between; }
+  .scan-merged-label { font-size: 12px; color: var(--sky-dark); font-weight: 500; }
+  .scan-merged-countdown { font-size: 11px; color: var(--sky); font-weight: 600; white-space: nowrap; }
+  .scan-merged-bar-wrap { background: rgba(21,101,192,0.12); border-radius: 3px; height: 4px; overflow: hidden; }
+  .scan-merged-bar { height: 4px; border-radius: 3px; background: linear-gradient(90deg, var(--sky), var(--sky-mid)); transition: width 1s linear; }
+  @keyframes scanPulse { 0%,100%{opacity:1} 50%{opacity:.55} }
+  .scan-pulse { animation: scanPulse 2s infinite; }
 
   /* ===== FRAMEWORK ===== */
   .fw-block { border-radius: 6px; padding: 10px 14px; margin-bottom: 10px; }
@@ -223,7 +228,6 @@
     <span class="tag-live">LIVE</span>
     <span class="time-badge" id="clock"></span>
     <span class="src-label">新浪财经 · 东方财富 · 财新网</span>
-    <span id="nextRefreshLabel" style="font-size:10px;color:rgba(255,255,255,.55);"></span>
   </div>
 </header>
 
@@ -250,9 +254,12 @@
         <span style="font-size:10px;color:var(--green);font-weight:600;">● 实时</span>
       </div>
       <div class="card-body">
-        <div class="scanning-label">
-          <span style="font-size:11px;color:var(--text3);">正在扫描最新资讯...</span>
-          <div class="scan-bar"></div>
+        <div class="scan-merged">
+          <div class="scan-merged-top">
+            <span class="scan-merged-label"><span class="scan-pulse">●</span> 正在扫描最新资讯...</span>
+            <span class="scan-merged-countdown" id="refreshCountdown">刷新倒计时 --:--</span>
+          </div>
+          <div class="scan-merged-bar-wrap"><div class="scan-merged-bar" id="refreshBarMerged"></div></div>
         </div>
         <div class="source-item"><div><span class="dot-status"></span><span class="source-name">新浪财经</span></div><span class="source-badge">科技/财经</span></div>
         <div class="source-item"><div><span class="dot-status"></span><span class="source-name">东方财富网</span></div><span class="source-badge">A股/研报</span></div>
@@ -427,15 +434,21 @@ let refreshRemain = REFRESH_INTERVAL;
 function updateRefreshUI(){
   const pct = ((REFRESH_INTERVAL - refreshRemain) / REFRESH_INTERVAL) * 100;
   document.getElementById('refreshBar').style.width = pct + '%';
+  document.getElementById('refreshBarMerged').style.width = pct + '%';
   const m = Math.floor(refreshRemain / 60);
   const s = refreshRemain % 60;
-  document.getElementById('nextRefreshLabel').textContent = `刷新倒计时 ${m}:${String(s).padStart(2,'0')}`;
+  document.getElementById('refreshCountdown').textContent = `距下次刷新 ${m}:${String(s).padStart(2,'0')}`;
 }
 
 function doRefresh(){
   const toast = document.getElementById('refreshToast');
   toast.classList.add('show');
   setTimeout(()=>toast.classList.remove('show'), 2000);
+
+  // 扫描标签短暂闪烁
+  const label = document.querySelector('.scan-merged-label');
+  label.innerHTML = '<span class="scan-pulse">●</span> 正在刷新数据...';
+  setTimeout(()=>{ label.innerHTML = '<span class="scan-pulse">●</span> 正在扫描最新资讯...'; }, 2000);
 
   // 刷新指数数据（模拟波动）
   refreshIndices();
