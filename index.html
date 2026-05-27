@@ -256,7 +256,7 @@
       <div class="card-body">
         <div class="scan-merged">
           <div class="scan-merged-top">
-            <span class="scan-merged-label"><span class="scan-pulse">●</span> 正在扫描最新资讯...</span>
+            <span class="scan-merged-label"><span class="scan-pulse">●</span> 扫描最新资讯</span>
             <span class="scan-merged-countdown" id="refreshCountdown">刷新倒计时 --:--</span>
           </div>
           <div class="scan-merged-bar-wrap"><div class="scan-merged-bar" id="refreshBarMerged"></div></div>
@@ -447,8 +447,8 @@ function doRefresh(){
 
   // 扫描标签短暂闪烁
   const label = document.querySelector('.scan-merged-label');
-  label.innerHTML = '<span class="scan-pulse">●</span> 正在刷新数据...';
-  setTimeout(()=>{ label.innerHTML = '<span class="scan-pulse">●</span> 正在扫描最新资讯...'; }, 2000);
+  label.innerHTML = '<span class="scan-pulse">●</span> 刷新数据中';
+  setTimeout(()=>{ label.innerHTML = '<span class="scan-pulse">●</span> 扫描最新资讯'; }, 2000);
 
   // 刷新指数数据（模拟波动）
   refreshIndices();
