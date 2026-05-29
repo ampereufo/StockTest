@@ -11,6 +11,8 @@ import re
 import sys
 from datetime import datetime
 
+import time
+
 import requests
 
 # ── 配置 ──────────────────────────────────────────────
@@ -41,15 +43,23 @@ INDEX_CODES = {
 
 
 def fetch_sina_quotes(codes):
-    """批量获取新浪财经实时行情"""
+    """批量获取新浪财经实时行情（含重试）"""
     url = SINA_API + ",".join(codes)
-    try:
-        resp = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
-        resp.encoding = "gbk"
-        return resp.text
-    except Exception as e:
-        print(f"[ERROR] fetch_sina_quotes: {e}", file=sys.stderr)
-        return ""
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            resp = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
+            resp.encoding = "gbk"
+            text = resp.text
+            if text and "hq_str_" in text:
+                return text
+            print(f"[WARN] fetch_sina_quotes attempt {attempt+1}: got empty/invalid response (len={len(text)})", file=sys.stderr)
+        except Exception as e:
+            print(f"[ERROR] fetch_sina_quotes attempt {attempt+1}: {e}", file=sys.stderr)
+        if attempt < max_retries - 1:
+            time.sleep(2 * (attempt + 1))  # 2s, 4s backoff
+    print(f"[FATAL] fetch_sina_quotes: all {max_retries} attempts failed", file=sys.stderr)
+    return ""
 
 
 def parse_stock_line(line):
