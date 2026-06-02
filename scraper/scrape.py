@@ -1,179 +1,143 @@
 #!/usr/bin/env python3
 """
 科技股智能研究平台 — 定时爬虫
-数据源：新浪财经实时行情 API
+数据源：东方财富实时行情 API
 输出：data/stocks.json, data/indices.json
 """
 
 import json
 import os
-import re
 import sys
-from datetime import datetime
-
 import time
+from datetime import datetime
 
 import requests
 
 # ── 配置 ──────────────────────────────────────────────
-SINA_API = "http://hq.sinajs.cn/list="
-HEADERS = {"Referer": "https://finance.sina.com.cn"}
+EM_STOCK_API = "http://push2.eastmoney.com/api/qt/ulist.np/get"
+EM_INDEX_API = "http://push2.eastmoney.com/api/qt/stock/get"
+HEADERS = {"Referer": "https://quote.eastmoney.com/"}
 TIMEOUT = 15
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 
-# ── 股票标的池（代码 → 分析元数据）─────────────────
-STOCK_POOL = {
-    "sh603501": {"code": "603501", "name": "豪威集团",  "rating": "strong", "ratingLabel": "强烈关注", "target": 180, "conf": 88, "catalyst": "Q2财报毛利率兑现"},
-    "sz002241": {"code": "002241", "name": "歌尔股份",  "rating": "hold",   "ratingLabel": "中性持有", "target": 32,  "conf": 55, "catalyst": "苹果新品发布"},
-    "sz300308": {"code": "300308", "name": "中际旭创",  "rating": "buy",    "ratingLabel": "积极配置", "target": 1400,"conf": 82, "catalyst": "800G/1.6T量产进度"},
-    "sh688012": {"code": "688012", "name": "中微公司",  "rating": "strong", "ratingLabel": "强烈关注", "target": 580, "conf": 85, "catalyst": "刻蚀机新客户导入"},
-    "sz300124": {"code": "300124", "name": "汇川技术",  "rating": "buy",    "ratingLabel": "积极配置", "target": 95,  "conf": 76, "catalyst": "机器人订单公告"},
-    "sh688223": {"code": "688223", "name": "晶科能源",  "rating": "watch",  "ratingLabel": "审慎观望", "target": 8.5, "conf": 48, "catalyst": "Q3组件出货数据"},
-    "sh603160": {"code": "603160", "name": "汇顶科技",  "rating": "buy",    "ratingLabel": "积极配置", "target": 82,  "conf": 78, "catalyst": "新一代指纹芯片量产"},
-    "sz002475": {"code": "002475", "name": "立讯精密",  "rating": "hold",   "ratingLabel": "中性持有", "target": 85,  "conf": 60, "catalyst": "苹果链复苏节奏"},
-}
+# ── 股票标的池 — 东方财富 secid 格式：市场.代码（1=沪, 0=深）────
+STOCK_POOL = [
+    {"secid": "1.603501", "code": "603501", "name": "豪威集团",  "rating": "strong", "ratingLabel": "强烈关注", "target": 180,  "conf": 88, "catalyst": "Q2财报毛利率兑现"},
+    {"secid": "0.002241", "code": "002241", "name": "歌尔股份",  "rating": "hold",   "ratingLabel": "中性持有", "target": 32,   "conf": 55, "catalyst": "苹果新品发布"},
+    {"secid": "0.300308", "code": "300308", "name": "中际旭创",  "rating": "buy",    "ratingLabel": "积极配置", "target": 1400, "conf": 82, "catalyst": "800G/1.6T量产进度"},
+    {"secid": "1.688012", "code": "688012", "name": "中微公司",  "rating": "strong", "ratingLabel": "强烈关注", "target": 580,  "conf": 85, "catalyst": "刻蚀机新客户导入"},
+    {"secid": "0.300124", "code": "300124", "name": "汇川技术",  "rating": "buy",    "ratingLabel": "积极配置", "target": 95,   "conf": 76, "catalyst": "机器人订单公告"},
+    {"secid": "1.688223", "code": "688223", "name": "晶科能源",  "rating": "watch",  "ratingLabel": "审慎观望", "target": 8.5,  "conf": 48, "catalyst": "Q3组件出货数据"},
+    {"secid": "1.603160", "code": "603160", "name": "汇顶科技",  "rating": "buy",    "ratingLabel": "积极配置", "target": 82,   "conf": 78, "catalyst": "新一代指纹芯片量产"},
+    {"secid": "0.002475", "code": "002475", "name": "立讯精密",  "rating": "hold",   "ratingLabel": "中性持有", "target": 85,   "conf": 60, "catalyst": "苹果链复苏节奏"},
+]
 
-# ── 指数代码 ──────────────────────────────────────────
-INDEX_CODES = {
-    "sh000001": "上证指数",
-    "sz399001": "深证成指",
-    "sh000688": "科创50",
-    "sz399006": "创业板指",
-}
+# ── 指数配置 ──────────────────────────────────────────
+INDEX_POOL = [
+    {"secid": "1.000001", "name": "上证指数",   "divisor": 100},
+    {"secid": "0.399001", "name": "深证成指",   "divisor": 100},
+    {"secid": "1.000688", "name": "科创50",     "divisor": 100},
+    {"secid": "0.399006", "name": "创业板指",   "divisor": 100},
+    {"secid": "1.000990", "name": "半导体指数", "divisor": 100},
+]
 
 
-def fetch_sina_quotes(codes):
-    """批量获取新浪财经实时行情（含重试）"""
-    url = SINA_API + ",".join(codes)
-    max_retries = 3
+def fetch_with_retry(url, params, max_retries=3):
+    """带重试的 HTTP 请求"""
     for attempt in range(max_retries):
         try:
-            resp = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
-            resp.encoding = "gbk"
-            text = resp.text
-            if text and "hq_str_" in text:
-                return text
-            print(f"[WARN] fetch_sina_quotes attempt {attempt+1}: got empty/invalid response (len={len(text)})", file=sys.stderr)
+            resp = requests.get(url, params=params, headers=HEADERS, timeout=TIMEOUT)
+            data = resp.json()
+            if data.get("rc") == 0 and data.get("data"):
+                return data
+            print(f"[WARN] fetch attempt {attempt+1}: rc={data.get('rc')}", file=sys.stderr)
         except Exception as e:
-            print(f"[ERROR] fetch_sina_quotes attempt {attempt+1}: {e}", file=sys.stderr)
+            print(f"[ERROR] fetch attempt {attempt+1}: {e}", file=sys.stderr)
         if attempt < max_retries - 1:
-            time.sleep(2 * (attempt + 1))  # 2s, 4s backoff
-    print(f"[FATAL] fetch_sina_quotes: all {max_retries} attempts failed", file=sys.stderr)
-    return ""
-
-
-def parse_stock_line(line):
-    """解析单个股票行情行，返回 dict 或 None"""
-    m = re.search(r'hq_str_(\w+)="(.*)"', line)
-    if not m:
-        return None
-    sid = m.group(1)
-    fields = m.group(2).split(",")
-    if len(fields) < 33:
-        return None
-
-    # 字段索引（新浪财经标准格式）
-    # 0:名称 1:今开 2:昨收 3:当前价 4:最高 5:最低 30:日期 31:时间
-    name = fields[0]
-    open_p = float(fields[1]) if fields[1] else 0
-    prev_close = float(fields[2]) if fields[2] else 0
-    price = float(fields[3]) if fields[3] else 0
-    high = float(fields[4]) if fields[4] else 0
-    low = float(fields[5]) if fields[5] else 0
-
-    chg_pct = round((price - prev_close) / prev_close * 100, 2) if prev_close else 0
-
-    return {
-        "sid": sid,
-        "name": name,
-        "price": price,
-        "open": open_p,
-        "prevClose": prev_close,
-        "high": high,
-        "low": low,
-        "chg": chg_pct,
-    }
+            time.sleep(2 * (attempt + 1))
+    print(f"[FATAL] fetch: all {max_retries} attempts failed", file=sys.stderr)
+    return None
 
 
 def scrape_stocks():
-    """抓取标的池行情"""
-    codes = list(STOCK_POOL.keys())
-    raw = fetch_sina_quotes(codes)
+    """批量抓取股票行情 — 东方财富 ulist API"""
+    secids = ",".join(s["secid"] for s in STOCK_POOL)
+    data = fetch_with_retry(EM_STOCK_API, {
+        "fltt": "2",
+        "fields": "f2,f3,f12,f14",
+        "secids": secids,
+    })
+
+    if not data:
+        print("[SKIP] stocks: no data", file=sys.stderr)
+        return
+
+    # 按 code 建索引
+    stock_map = {item["f12"]: item for item in data["data"]["diff"]}
 
     results = []
-    for line in raw.strip().split("\n"):
-        if not line.strip():
+    for s in STOCK_POOL:
+        item = stock_map.get(s["code"])
+        if not item:
+            print(f"[WARN] stock {s['code']} not found in response", file=sys.stderr)
             continue
-        parsed = parse_stock_line(line)
-        if not parsed:
-            continue
-        meta = STOCK_POOL.get(parsed["sid"])
-        if not meta:
-            continue
+        # 东方财富 f2 价格单位是「分」，需除以 100
+        price = item["f2"] / 100 if item["f2"] else 0
+        chg = item["f3"] if item["f3"] else 0
         results.append({
-            "code": meta["code"],
-            "name": meta["name"],
-            "price": parsed["price"],
-            "chg": parsed["chg"],
-            "rating": meta["rating"],
-            "ratingLabel": meta["ratingLabel"],
-            "target": meta["target"],
-            "upside": round((meta["target"] - parsed["price"]) / parsed["price"] * 100, 1) if parsed["price"] else 0,
-            "conf": meta["conf"],
-            "catalyst": meta["catalyst"],
+            "code": s["code"],
+            "name": s["name"],
+            "price": round(price, 2),
+            "chg": round(chg, 2),
+            "rating": s["rating"],
+            "ratingLabel": s["ratingLabel"],
+            "target": s["target"],
+            "upside": round((s["target"] - price) / price * 100, 1) if price else 0,
+            "conf": s["conf"],
+            "catalyst": s["catalyst"],
         })
-
-    # 保持顺序
-    results.sort(key=lambda x: list(STOCK_POOL.values()).index(
-        next(v for v in STOCK_POOL.values() if v["code"] == x["code"])))
 
     path = os.path.join(DATA_DIR, "stocks.json")
     with open(path, "w", encoding="utf-8") as f:
-        json.dump({"updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "stocks": results}, f, ensure_ascii=False, indent=2)
-    print(f"[OK] stocks.json written — {len(results)} stocks")
+        json.dump({"updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "stocks": results},
+                  f, ensure_ascii=False, indent=2)
+    print(f"[OK] stocks.json — {len(results)} stocks")
 
 
 def scrape_indices():
-    """抓取指数行情"""
-    codes = list(INDEX_CODES.keys())
-    raw = fetch_sina_quotes(codes)
-
+    """逐个抓取指数行情"""
     results = []
-    for line in raw.strip().split("\n"):
-        if not line.strip():
-            continue
-        parsed = parse_stock_line(line)
-        if not parsed:
-            continue
-        name = INDEX_CODES.get(parsed["sid"], parsed["name"])
-        results.append({
-            "name": name,
-            "val": parsed["price"],
-            "chg": parsed["chg"],
-            "dir": "up" if parsed["chg"] >= 0 else "down",
+    for idx in INDEX_POOL:
+        data = fetch_with_retry(EM_INDEX_API, {
+            "secid": idx["secid"],
+            "fields": "f43,f57,f58,f170",
         })
+        if not data:
+            continue
+        d = data["data"]
+        raw_val = d.get("f43", 0)
+        if not raw_val:
+            continue
+        val = raw_val / idx["divisor"] if idx["divisor"] else raw_val
+        chg = d.get("f170", 0) / 100 if d.get("f170") else 0
 
-    # 按配置顺序
-    results.sort(key=lambda x: list(INDEX_CODES.values()).index(x["name"]))
-
-    # 补充半导体指数（新浪没有独立指数代码，用科创板50作为近似，或保持手工补充）
-    # 这里保留一个占位，实际可以用东方财富获取
-    results.append({
-        "name": "半导体指数",
-        "val": 6723.11,  # 新浪不提供，保留上次值
-        "chg": 0,
-        "dir": "up",
-    })
+        results.append({
+            "name": idx["name"],
+            "val": round(val, 2),
+            "chg": round(chg, 2),
+            "dir": "up" if chg >= 0 else "down",
+        })
 
     path = os.path.join(DATA_DIR, "indices.json")
     with open(path, "w", encoding="utf-8") as f:
-        json.dump({"updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "indices": results}, f, ensure_ascii=False, indent=2)
-    print(f"[OK] indices.json written — {len(results)} indices")
+        json.dump({"updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "indices": results},
+                  f, ensure_ascii=False, indent=2)
+    print(f"[OK] indices.json — {len(results)} indices")
 
 
 def main():
     os.makedirs(DATA_DIR, exist_ok=True)
-    print(f"[{datetime.now()}] Starting scrape...")
+    print(f"[{datetime.now()}] Starting scrape (EastMoney API)...")
     scrape_indices()
     scrape_stocks()
     print(f"[{datetime.now()}] Done.")
