@@ -481,14 +481,8 @@ async function loadIndices(){
     const json = await resp.json();
     currentIndices = json.indices;
   }catch(e){
-    console.warn('加载 indices.json 失败，使用默认数据', e);
-    currentIndices = [
-      { name:'上证指数', val:3487.23, chg:+0.82, dir:'up' },
-      { name:'深证成指', val:10812.56, chg:+1.14, dir:'up' },
-      { name:'科创50', val:1124.80, chg:+2.31, dir:'up' },
-      { name:'创业板指', val:2198.34, chg:-0.43, dir:'down' },
-      { name:'半导体指数', val:6723.11, chg:+3.15, dir:'up' },
-    ];
+    console.warn('加载 indices.json 失败', e);
+    currentIndices = [];
   }
   renderIndexBar();
 }
@@ -496,6 +490,10 @@ async function loadIndices(){
 function renderIndexBar(){
   const el = document.getElementById('sec-index');
   el.innerHTML = '';
+  if(!currentIndices.length){
+    el.innerHTML = '<div class="idx-item" style="grid-column:1/-1;color:var(--text3);padding:8px;">指数数据加载中...</div>';
+    return;
+  }
   currentIndices.forEach(idx=>{
     const cls = idx.chg>=0?'up':'down';
     const sign = idx.chg>=0?'+':'';
@@ -579,17 +577,8 @@ async function loadStocks(){
     const json = await resp.json();
     currentStocks = json.stocks;
   }catch(e){
-    console.warn('加载 stocks.json 失败，使用默认数据', e);
-    currentStocks = [
-      { code:'603501', name:'豪威集团',  price:148.20, chg:+2.34, rating:'strong', ratingLabel:'强烈关注', target:180, upside:21.4, conf:88, catalyst:'Q2财报毛利率兑现' },
-      { code:'002241', name:'歌尔股份',  price:22.15,  chg:-0.87, rating:'hold',   ratingLabel:'中性持有', target:32,  upside:44.5, conf:55, catalyst:'苹果新品发布' },
-      { code:'300308', name:'中际旭创',  price:102.50, chg:+4.12, rating:'buy',    ratingLabel:'积极配置', target:1400, upside:26.0, conf:82, catalyst:'800G/1.6T量产进度' },
-      { code:'688012', name:'中微公司',  price:215.30, chg:+1.85, rating:'strong', ratingLabel:'强烈关注', target:580, upside:27.5, conf:85, catalyst:'刻蚀机新客户导入' },
-      { code:'300124', name:'汇川技术',  price:68.40,  chg:+0.62, rating:'buy',    ratingLabel:'积极配置', target:95,  upside:22.0, conf:76, catalyst:'机器人订单公告' },
-      { code:'688223', name:'晶科能源',  price:7.82,   chg:-1.13, rating:'watch',  ratingLabel:'审慎观望', target:8.5, upside:39.0, conf:48, catalyst:'Q3组件出货数据' },
-      { code:'603160', name:'汇顶科技',  price:55.70,  chg:+3.45, rating:'buy',    ratingLabel:'积极配置', target:82,  upside:23.0, conf:78, catalyst:'新一代指纹芯片量产' },
-      { code:'002475', name:'立讯精密',  price:35.20,  chg:+0.85, rating:'hold',   ratingLabel:'中性持有', target:85,  upside:19.0, conf:60, catalyst:'苹果链复苏节奏' },
-    ];
+    console.warn('加载 stocks.json 失败', e);
+    currentStocks = [];
   }
   renderStockTable();
 }
@@ -597,6 +586,10 @@ async function loadStocks(){
 function renderStockTable(filter='all'){
   const body = document.getElementById('stockTableBody');
   body.innerHTML = '';
+  if(!currentStocks.length){
+    body.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px;">标的数据加载中，请稍候刷新...</td></tr>';
+    return;
+  }
   const rMap = { strong:'r-strong', buy:'r-buy', hold:'r-hold', watch:'r-watch', avoid:'r-avoid' };
   currentStocks.forEach(s=>{
     if(filter!=='all' && s.rating!==filter) return;
